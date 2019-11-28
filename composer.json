@@ -1,0 +1,26 @@
+{
+    "name": "k3net/navinvoice",
+    "description": "Create hungarian NAV XML from JSON invoice data",
+    "require": {
+        "pzs/nav-online-invoice": "^1.1"
+    },
+    "authors": [
+        {
+            "name": "kornel",
+            "email": "kornel@k3net.hu"
+        }
+    ],
+    "minimum-stability": "dev",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "k3net\\navinvoice\\NavInvoiceServiceProvider"
+            ]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "K3Net\\NavInvoice\\": "src/"
+        }
+    }
+}
