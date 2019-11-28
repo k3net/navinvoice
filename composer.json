@@ -14,7 +14,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "k3net\\navinvoice\\NavInvoiceServiceProvider"
+                "K3Net\\NavInvoice\\NavInvoiceServiceProvider"
             ]
         }
     },
