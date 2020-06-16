@@ -1,6 +1,6 @@
 <?php
 
-namespace K3Net\NavInvoice;
+namespace K3Net\NavInvoice\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
