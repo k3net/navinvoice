@@ -2,7 +2,7 @@
 
 namespace K3Net\NavInvoice\Services;
 
-use Carbon\Carbon, Auth, DB, Config, Mail, SimpleXMLElement, DOMDocument;
+use Carbon\Carbon, Auth, DB, Config, Mail, SimpleXMLElement, DOMDocument, View;
 use NavOnlineInvoice;
 use App\Services\Messages;
 use K3Net\NavInvoice\Models\NavTosend, K3Net\NavInvoice\Models\NavConnection;
@@ -18,6 +18,7 @@ class NavInvoiceService {
   
   public function __construct()
   {
+		
     $this->json_path = storage_path('/app/nav/user.json');
     
 		$json = json_encode([
@@ -37,17 +38,16 @@ class NavInvoiceService {
 	
 	public function nisSend($invoiceData)
 	{
-		$invoiceData = json_decode($invoiceData);
-    $this->createXml($invoiceData);
 		
-		if ($invoiceData->operation == 'XMLTEST'){      
+    $this->createXml($invoiceData);
+		if ($invoiceData['operation'] == 'XMLTEST'){      
 			print $this->xmltest();
-		}else{			
+		}else{
 			$navTosend = NavTosend::create([
-				'invoice_id' => $invoiceData->data->number,
-				'customer' => $invoiceData->customer->name,
+				'invoice_id' => $invoiceData['data']['number'],
+				'customer' => $invoiceData['customer']['name'],
 				'xml' => $this->base64_xml,
-				'operation' => $invoiceData->operation,
+				'operation' => $invoiceData['operation'],
 				'status' => 'tosend'
 			]);
 			//nem indítjuk el innen, hogy egy időben fusson a cronnal, majd a cron indítja
@@ -80,20 +80,27 @@ class NavInvoiceService {
                                     
   public function createXml($d)
   {
+		$i = 1;
+		$xml = simplexml_load_string(View::make('navinvoice::nav_xml', compact('d','i'))->render());
+			
+		/*
     $methods['Átutalás'] = 'TRANSFER';
     $methods['átutalás'] = 'TRANSFER';
     $methods['Készpénz'] = 'CASH';
     $methods['Bankkártya'] = 'CARD';
     $methods['Utánvét'] = 'OTHER';
-    $methods['Előre fizetés'] = 'OTHER';
+    $methods['Előre fizetés'] = 'OTHER';    
     
-    
-    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><Invoice></Invoice>');
+    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><InvoiceData></InvoiceData>');
     $xml->addAttribute('xmlns:xmlns:xs', 'http://www.w3.org/2001/XMLSchema-instance');
-    $xml->addAttribute('xmlns', 'http://schemas.nav.gov.hu/OSA/1.0/data');
-    $xml->addAttribute('xs:xs:schemaLocation', 'http://schemas.nav.gov.hu/OSA/1.0/data invoiceData_20180319.xsd');
+    $xml->addAttribute('xmlns', 'http://schemas.nav.gov.hu/OSA/2.0/data');
+    $xml->addAttribute('xs:xs:schemaLocation', 'http://schemas.nav.gov.hu/OSA/2.0/data invoiceData.xsd');
     
-    $exchange = $xml->addChild('invoiceExchange');
+		$xml->addChild('invoiceNumber',$d->data->number);
+		$xml->addChild('invoiceIssueDate',$d->data->issueDate);
+		
+    $main = $xml->addChild('invoiceMain');
+    $invoice = $main->addChild('invoice');
     
     //sztornó számla esetén
     if(isset($d->reference)){
@@ -148,9 +155,9 @@ class NavInvoiceService {
     
     $data = $head->addChild('invoiceData');
     
-    $data->addChild('invoiceNumber',$d->data->number);
+    
     $data->addChild('invoiceCategory',$d->data->category);
-    $data->addChild('invoiceIssueDate',$d->data->issueDate);
+    
     $data->addChild('invoiceDeliveryDate',$d->data->deliveryDate);
     $data->addChild('currencyCode',$d->data->currencyCode);
     $data->addChild('exchangeRate',$d->data->exchangeRate);
@@ -226,11 +233,11 @@ class NavInvoiceService {
     
     $summary->addChild('invoiceGrossAmount',$d->summary->grossamount);
     
-
+*/
     $this->xml = $xml;
 
     $this->base64_xml = base64_encode($xml->asXML());
-    if($d->debug){
+    if($d['debug']){
       $sxe = simplexml_load_string($xml->asXML());
 
       if ($sxe === false) {
@@ -262,10 +269,7 @@ class NavInvoiceService {
 	
 	public function config($userJson)
 	{
-		$config = new NavOnlineInvoice\Config(env('NAV_URL'), $userJson);
-		$config->useApiSchemaValidation();
-		$config->setCurlTimeout(10);
-		$config->setSoftware([
+		$software = [
 			'softwareId' => 'HU1461976620200001',
 			'softwareName' => 'K3 invoice2NAV számlázó interface',
 			'softwareOperation' => 'ONLINE_SERVICE',
@@ -274,7 +278,17 @@ class NavInvoiceService {
 			'softwareDevContact' => 'info@k3net.hu',
 			'softwareDevCountryCode' => 'HU',
 			'softwareDevTaxNumber' => '14619766-2-02'
-		]);
+		];
+		
+		try{
+			$config = new NavOnlineInvoice\Config(env('NAV_URL'), $userJson, $software);
+		}
+		catch(\Exception $e){
+			print $e->getMessage();
+		}
+		
+		$config->useApiSchemaValidation();
+		$config->setCurlTimeout(10);
 		
 		return $config;
 	}
@@ -294,8 +308,7 @@ class NavInvoiceService {
 	
 	public function xmltest()
 	{
-    
-		try {
+		try {			
 			$config = $this->config($this->json_path);
 			$reporter = new NavOnlineInvoice\Reporter($config);
 		} catch(\Exception $ex) {
@@ -402,7 +415,7 @@ class NavInvoiceService {
 					$config = $this->config($this->json_path);
 					$reporter = new NavOnlineInvoice\Reporter($config);
 					
-					$re = $reporter->queryInvoiceStatus($tosend->transaction_id);
+					$re = $reporter->queryTransactionStatus($tosend->transaction_id);
           
 					if (isset($re->processingResults)){
             

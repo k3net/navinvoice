@@ -2,7 +2,7 @@
     "name": "k3net/navinvoice",
     "description": "Create hungarian NAV XML from JSON invoice data",
     "require": {
-        "pzs/nav-online-invoice": "^1.1"
+        "pzs/nav-online-invoice": "^2.0.1"
     },
     "authors": [
         {

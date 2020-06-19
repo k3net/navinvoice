@@ -16,6 +16,8 @@ class NavInvoiceServiceProvider extends ServiceProvider
         //ez az újabb verziókban van meg
         //$this->loadRoutesFrom(__DIR__.'/routes.php');
         //$this->loadMigrationsFrom(__DIR__.'/migrations');
+			
+				$this->loadViewsFrom(__DIR__.'/views', 'navinvoice');
       
         if (! $this->app->routesAreCached()) {
           require __DIR__.'/routes/routes.php';
