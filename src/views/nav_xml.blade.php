@@ -31,7 +31,7 @@
 						</detailedAddress>
 					</supplierAddress>
 					<supplierBankAccountNumber>{{ $d['supplier']['supplierBankAccountNumber'] }}</supplierBankAccountNumber>
-		@if ($d['supplier']['supplierBankAccountNumber'] == 1)
+		@if ($d['supplier']['smallTaxpayer'] == 1)
 					<individualExemption>true</individualExemption>
 		@endif
 				</supplierInfo>

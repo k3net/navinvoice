@@ -38,9 +38,8 @@ class NavInvoiceService {
 	
 	public function nisSend($invoiceData)
 	{
-		
     $this->createXml($invoiceData);
-		if ($invoiceData['operation'] == 'XMLTEST'){      
+		if ($invoiceData['operation'] == 'XMLTEST'){ 			
 			print $this->xmltest();
 		}else{
 			$navTosend = NavTosend::create([
