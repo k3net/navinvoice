@@ -379,9 +379,9 @@ class NavInvoiceService {
 			return $tosend->id;
 		} catch(\Exception $ex) {
 			$tosend->status = $orig_status;
-			$tosend->msg = 'sending error: '.get_class($ex).': '.$ex->getErrorCode().' '.$ex->getMessage();
+			$tosend->msg = 'sending error: '.get_class($ex).': '.$ex->getMessage();
 			$tosend->save();
-			$connection->msg = 'sending error: '.get_class($ex).': '.$ex->getErrorCode().' '.$ex->getMessage();
+			$connection->msg = 'sending error: '.get_class($ex).': '.$ex->getMessage();
 			$connection->save();
 			return 'sending error';
 		}
