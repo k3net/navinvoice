@@ -36,11 +36,13 @@
 		@endif
 				</supplierInfo>
 				<customerInfo>
+					@if(!is_null($d['customer']['taxnum']))
 					<customerTaxNumber>
 						<taxpayerId>{{ explode('-',$d['customer']['taxnum'])[0] }}</taxpayerId>
 						<vatCode>{{ explode('-',$d['customer']['taxnum'])[1] }}</vatCode>
 						<countyCode>{{ explode('-',$d['customer']['taxnum'])[2] }}</countyCode>
 					</customerTaxNumber>
+					@endif
 					<customerName>{!! $d['customer']['name'] !!}</customerName>
 					<customerAddress>
 						<simpleAddress>
