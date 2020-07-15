@@ -30,7 +30,9 @@
 							@if(! empty($d['supplier']['door']))<door>{!! $d['supplier']['door'] !!}</door>@endif
 						</detailedAddress>
 					</supplierAddress>
+					@if(!is_null($d['supplier']['supplierBankAccountNumber']))
 					<supplierBankAccountNumber>{{ $d['supplier']['supplierBankAccountNumber'] }}</supplierBankAccountNumber>
+					@endif
 		@if ($d['supplier']['smallTaxpayer'] == 1)
 					<individualExemption>true</individualExemption>
 		@endif

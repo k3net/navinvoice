@@ -507,8 +507,5 @@ class NavInvoiceService {
 				  ->subject('onlineszamla error :/');
 			}
 		);
-		
-    $user = \App\User::find(2);
-		Messages::send($user, 'onlineszamla error', $msg);
 	}
 }
