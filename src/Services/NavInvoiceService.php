@@ -14,21 +14,12 @@ Azért,mert nem composerrel telepítettük a csomagot, ezt bele kell tenni a ven
 ***/
 
 class NavInvoiceService {
-	var $json_path, $xml, $base64_xml;
+	var $userData = null;
+	var $xml, $base64_xml;
   
-  public function __construct()
-  {
-		
-    $this->json_path = storage_path('/app/nav/user.json');
-    
-		$json = json_encode([
-			"login" => env('NAV_LOGIN'),
-			"password" => env('NAV_PASSWORD'),
-			"taxNumber" => env('NAV_TAXNUMBER'),
-			"signKey" => env('NAV_SIGNKEY'),
-			"exchangeKey" => env('NAV_EXCHANGEKEY')
-		]);
-		file_put_contents($this->json_path, $json);
+  public function __construct($userData)
+  {    
+		$this->userData = $userData;
   }
   
 	public function nisTestConnection()
@@ -82,157 +73,6 @@ class NavInvoiceService {
 		$i = 1;
 		$xml = simplexml_load_string(View::make('navinvoice::nav_xml', compact('d','i'))->render());
 			
-		/*
-    $methods['Átutalás'] = 'TRANSFER';
-    $methods['átutalás'] = 'TRANSFER';
-    $methods['Készpénz'] = 'CASH';
-    $methods['Bankkártya'] = 'CARD';
-    $methods['Utánvét'] = 'OTHER';
-    $methods['Előre fizetés'] = 'OTHER';    
-    
-    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><InvoiceData></InvoiceData>');
-    $xml->addAttribute('xmlns:xmlns:xs', 'http://www.w3.org/2001/XMLSchema-instance');
-    $xml->addAttribute('xmlns', 'http://schemas.nav.gov.hu/OSA/2.0/data');
-    $xml->addAttribute('xs:xs:schemaLocation', 'http://schemas.nav.gov.hu/OSA/2.0/data invoiceData.xsd');
-    
-		$xml->addChild('invoiceNumber',$d->data->number);
-		$xml->addChild('invoiceIssueDate',$d->data->issueDate);
-		
-    $main = $xml->addChild('invoiceMain');
-    $invoice = $main->addChild('invoice');
-    
-    //sztornó számla esetén
-    if(isset($d->reference)){
-      $reference = $exchange->addChild('invoiceReference');
-      $reference->addChild('originalInvoiceNumber',$d->reference->originalInvoiceNumber);
-      $reference->addChild('modificationIssueDate',$d->reference->modificationIssueDate);
-      $reference->addChild('modificationTimestamp',$d->reference->modificationTimestamp);
-      $reference->addChild('modifyWithoutMaster',true);
-    }
-    
-    $head = $exchange->addChild('invoiceHead');
-    
-    $supplier = $head->addChild('supplierInfo');
-    
-    $tax = $supplier->addChild('supplierTaxNumber');
-    $tax->addChild('taxpayerId',explode('-',$d->supplier->taxnum)[0]);
-    $tax->addChild('vatCode',explode('-',$d->supplier->taxnum)[1]);
-    $tax->addChild('countyCode',explode('-',$d->supplier->taxnum)[2]);
-    
-    $supplier->addChild('supplierName',$d->supplier->name);
-    
-    $address = $supplier->addChild('supplierAddress');
-    $detailedAddress = $address->addChild('detailedAddress');
-    $detailedAddress->addChild('countryCode','HU');
-    $detailedAddress->addChild('postalCode',$d->supplier->postalCode);
-    $detailedAddress->addChild('city',$d->supplier->city);
-    $detailedAddress->addChild('streetName',$d->supplier->streetName);
-    $detailedAddress->addChild('publicPlaceCategory',$d->supplier->publicPlaceCategory);
-    $detailedAddress->addChild('number',$d->supplier->number);
-    
-    $supplier->addChild('supplierBankAccountNumber',$d->supplier->supplierBankAccountNumber);
-    
-    if(!isset($d->reference)){
-      $customer = $head->addChild('customerInfo');
-      if(!empty($d->customer->taxnum)){        
-        $tax = $customer->addChild('customerTaxNumber');
-        $tax->addChild('taxpayerId',explode('-',$d->customer->taxnum)[0]);
-        $tax->addChild('vatCode',explode('-',$d->customer->taxnum)[1]);
-        $tax->addChild('countyCode',explode('-',$d->customer->taxnum)[2]);
-      }
-      
-      $customer->addChild('customerName',$d->customer->name);
-      
-      $address = $customer->addChild('customerAddress');
-      $simpleAddress = $address->addChild('simpleAddress');
-      $simpleAddress->addChild('countryCode','HU');
-      $simpleAddress->addChild('postalCode',$d->customer->postalCode);
-      $simpleAddress->addChild('city',$d->customer->city);
-      $simpleAddress->addChild('additionalAddressDetail',$d->customer->additionalAddressDetail);     
-      
-    }
-    
-    $data = $head->addChild('invoiceData');
-    
-    
-    $data->addChild('invoiceCategory',$d->data->category);
-    
-    $data->addChild('invoiceDeliveryDate',$d->data->deliveryDate);
-    $data->addChild('currencyCode',$d->data->currencyCode);
-    $data->addChild('exchangeRate',$d->data->exchangeRate);
-    $data->addChild('paymentMethod',$methods[$d->data->paymentMethod]);
-    $data->addChild('paymentDate',$d->data->paymentDate);
-    $data->addChild('invoiceAppearance','PAPER');
-    
-    $lines = $exchange->addChild('invoiceLines');
-    
-    $afa = [];
-    $afatemplate = [
-                    'netamount' => 0,
-                    'vatamount' => 0,
-                    'grossamount' => 0
-                  ];
-    
-    $i = 1;
-    $count = count($d->lines);
-    
-    foreach($d->lines as $item){
-      $afakulcs = $item->vatPercentage * 100;
-      if(!isset($afa[$afakulcs])){
-        $afa[$afakulcs] = $afatemplate;
-      }
-      
-      $afa[$afakulcs]['netamount'] += $item->price * $item->quantity;
-      $afa[$afakulcs]['vatamount'] += $item->vatAmount * $item->quantity;
-      $afa[$afakulcs]['grossamount'] += $item->grossAmountNormal * $item->quantity;
-      
-      $line = $lines->addChild('line');
-      
-      $line->addChild('lineNumber',$i);
-      $line->addChild('lineExpressionIndicator',true);
-      
-      if(isset($d->reference))
-      {
-        $mod = $line->addChild('lineModificationReference');
-        $mod->addChild('lineNumberReference', $count + $i -1);
-        $mod->addChild('lineOperation', 'MODIFY');
-      }
-      
-      $line->addChild('lineDescription',$item->description);
-      $line->addChild('quantity',$item->quantity);
-      $line->addChild('unitOfMeasure','PIECE');
-      $line->addChild('unitPrice',$item->price);
-      $amounts = $line->addChild('lineAmountsNormal');
-      $amounts->addChild('lineNetAmount', $item->price * $item->quantity);
-      $vat = $amounts->addChild('lineVatRate');
-      $vat->addChild('vatPercentage', $item->vatPercentage);
-      $amounts->addChild('lineVatAmount', $item->vatAmount * $item->quantity);
-      $amounts->addChild('lineGrossAmountNormal', $item->grossAmountNormal * $item->quantity);
-      
-      $i++;
-
-    }//tétel foreach
-    
-    $summary = $exchange->addChild('invoiceSummary');
-    $sn = $summary->addChild('summaryNormal');
-    foreach($afa as $afakulcs => $osszegek)
-    {
-      $sbvt = $sn->addChild('summaryByVatRate');
-      $vr = $sbvt->addChild('vatRate');
-      $vr->addChild('vatPercentage',$afakulcs/100);
-      $sbvt->addChild('vatRateNetAmount',$osszegek['netamount']);
-      $sbvt->addChild('vatRateVatAmount',$osszegek['netamount']);
-      $sbvt->addChild('vatRateVatAmountHUF',$osszegek['vatamount']);
-      $sbvt->addChild('vatRateGrossAmount',$osszegek['grossamount']);
-    }
-    
-    $sn->addChild('invoiceNetAmount',$d->summary->netamount);
-    $sn->addChild('invoiceVatAmount',$d->summary->vatamount);
-    $sn->addChild('invoiceVatAmountHUF',$d->summary->vatamount);
-    
-    $summary->addChild('invoiceGrossAmount',$d->summary->grossamount);
-    
-*/
     $this->xml = $xml;
 
     $this->base64_xml = base64_encode($xml->asXML());
@@ -266,7 +106,7 @@ class NavInvoiceService {
     }
   }
 	
-	public function config($userJson)
+	public function config()
 	{
 		$software = [
 			'softwareId' => 'HU1461976620200001',
@@ -280,7 +120,7 @@ class NavInvoiceService {
 		];
 		
 		try{
-			$config = new NavOnlineInvoice\Config(env('NAV_URL'), $userJson, $software);
+			$config = new NavOnlineInvoice\Config(env('NAV_URL'), $this->userData, $software);
 		}
 		catch(\Exception $e){
 			print $e->getMessage();
@@ -295,7 +135,7 @@ class NavInvoiceService {
 	public function test()
 	{
 		try {
-			$config = $this->config($this->json_path);
+			$config = $this->config();
 			$reporter = new NavOnlineInvoice\Reporter($config);
 			$token = $reporter->tokenExchange();
 			
@@ -308,7 +148,7 @@ class NavInvoiceService {
 	public function xmltest()
 	{
 		try {			
-			$config = $this->config($this->json_path);
+			$config = $this->config();
 			$reporter = new NavOnlineInvoice\Reporter($config);
 		} catch(\Exception $ex) {
 			return 'init failed: '.$ex->getMessage();
@@ -330,7 +170,7 @@ class NavInvoiceService {
 	{
 		//config
 		try {
-			$config = $this->config($this->json_path);
+			$config = $this->config();
 			$reporter = new NavOnlineInvoice\Reporter($config);
 			$tosend->msg = 'init ok, pid: '.getmypid();
 			$tosend->save();
@@ -411,7 +251,7 @@ class NavInvoiceService {
 				
 				try {
           
-					$config = $this->config($this->json_path);
+					$config = $this->config();
 					$reporter = new NavOnlineInvoice\Reporter($config);
 					
 					$re = $reporter->queryTransactionStatus($tosend->transaction_id);

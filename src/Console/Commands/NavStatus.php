@@ -31,7 +31,16 @@ class NavStatus extends Command
 	{
 		echo Carbon::now()." pid: ".getmypid()." navstatus start ... ";
 		$tosends = NavTosend::whereIn('status', ['tosend', 'sent', 'processing'])->get();
-		$nav_interface = new NavInvoiceService;
+		
+		$userData = [
+			"login" => env('NAV_LOGIN'),
+			"password" => env('NAV_PASSWORD'),
+			"taxNumber" => env('NAV_TAXNUMBER'),
+			"signKey" => env('NAV_SIGNKEY'),
+			"exchangeKey" => env('NAV_EXCHANGEKEY')
+		];
+		
+		$nav_interface = new NavInvoiceService($userData);
 		
 		foreach ($tosends as $tosend){
 			echo $nav_interface->getStatus($tosend);
