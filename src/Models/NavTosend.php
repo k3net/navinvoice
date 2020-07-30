@@ -16,6 +16,6 @@ class NavTosend extends Model
 	
 	public function connections()
 	{
-		return $this->hasMany('K3Net\Navinvoice\Models\NavConnection');
+		return $this->hasMany('\K3Net\NavInvoice\Models\NavConnection');
 	}
 }
