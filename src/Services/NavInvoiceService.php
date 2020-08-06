@@ -33,13 +33,19 @@ class NavInvoiceService {
 		if ($invoiceData['operation'] == 'XMLTEST'){ 			
 			print $this->xmltest();
 		}else{
-			$navTosend = NavTosend::create([
+			$data = [
 				'invoice_id' => $invoiceData['data']['number'],
 				'customer' => $invoiceData['customer']['name'],
 				'xml' => $this->base64_xml,
 				'operation' => $invoiceData['operation'],
 				'status' => 'tosend'
-			]);
+			];
+			
+			if(isset($invoiceData['client_id'])){
+				$data['client_id'] = $invoiceData['client_id'];
+			}
+			
+			$navTosend = NavTosend::create($data);
 			//nem indítjuk el innen, hogy egy időben fusson a cronnal, majd a cron indítja
 			//print $nav_interface->send($navTosend);
 			//print 'queued: '.$navTosend->id;
