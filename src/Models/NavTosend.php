@@ -14,6 +14,11 @@ class NavTosend extends Model
 		return $this->belongsTo('App\User')->withTrashed();
 	}
 	
+	public function client()
+	{
+		return $this->belongsTo('App\User')->withTrashed();
+	}
+	
 	public function connections()
 	{
 		return $this->hasMany('\K3Net\NavInvoice\Models\NavConnection');

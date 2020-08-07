@@ -30,7 +30,7 @@ class NavStatus extends Command
 	public function handle()
 	{
 		echo Carbon::now()." pid: ".getmypid()." navstatus start ... ";
-		$tosends = NavTosend::whereIn('status', ['tosend', 'sent', 'processing'])->get();
+		$tosends = NavTosend::whereIn('status', ['tosend', 'sent', 'processing'])->get();		
 		
 		$userData = [
 			"login" => env('NAV_LOGIN'),
@@ -40,9 +40,13 @@ class NavStatus extends Command
 			"exchangeKey" => env('NAV_EXCHANGEKEY')
 		];
 		
-		$nav_interface = new NavInvoiceService($userData);
-		
 		foreach ($tosends as $tosend){
+			//ez csak a sportpaynél van így:
+			if(!is_null($tosend->client)){
+				$userData = $tosend->client->navUserData;
+			}
+			
+			$nav_interface = new NavInvoiceService($userData);
 			echo $nav_interface->getStatus($tosend);
 			echo " ... ";
 		}
