@@ -15,15 +15,18 @@ class CreateNavTosendTable extends Migration
         Schema::create('nav_tosend', function (Blueprint $table) {
             $table->increments('id');
             $table->string('status',100);
-            $table->integer('user_id');
+            $table->integer('user_id')->default(0);
             $table->string('invoice_id',100);
             $table->string('customer',255);
             $table->mediumText('xml');
             $table->string('operation',100);
-            $table->text('msg');
-            $table->string('transaction_id',100);
+            $table->text('msg')->nullable();
+            $table->string('transaction_id',100)->nullable();
             $table->timestamps();
         });
+			
+			if(isset($invoiceData['client_id'])){
+				$data['client_id'] = $invoiceData['client_id'];
     }
 
     /**

@@ -15,7 +15,7 @@ class CreateNavConnectionsTable extends Migration
         Schema::create('nav_connections', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('nav_tosend_id');
-            $table->text('msg');
+            $table->text('msg')->nullable();
             $table->timestamps();
         });
     }
