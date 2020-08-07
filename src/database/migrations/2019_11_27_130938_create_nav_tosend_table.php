@@ -24,9 +24,6 @@ class CreateNavTosendTable extends Migration
             $table->string('transaction_id',100)->nullable();
             $table->timestamps();
         });
-			
-			if(isset($invoiceData['client_id'])){
-				$data['client_id'] = $invoiceData['client_id'];
     }
 
     /**
