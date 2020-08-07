@@ -42,7 +42,7 @@ class NavStatus extends Command
 		
 		foreach ($tosends as $tosend){
 			//ez csak a sportpaynél van így:
-			if(!is_null($tosend->client)){
+			if(!is_null($tosend->client_id)){
 				$userData = $tosend->client->navUserData;
 			}
 			

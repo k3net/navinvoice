@@ -16,7 +16,7 @@ class NavTosend extends Model
 	
 	public function client()
 	{
-		return $this->belongsTo('App\User')->withTrashed();
+		return $this->belongsTo('App\User');
 	}
 	
 	public function connections()
