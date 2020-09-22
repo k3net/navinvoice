@@ -354,4 +354,23 @@ class NavInvoiceService {
 			}
 		);
 	}
+    
+    public function queryTaxPayer($tax_number)
+    {
+        $config = $this->config();
+        $reporter = new NavOnlineInvoice\Reporter($config);
+        try {
+            $result = $reporter->queryTaxpayer($tax_number) ;
+        
+            if ($result) {
+                return true;
+            } else {
+                return false;
+            }
+
+        } catch(Exception $ex) {
+            print get_class($ex) . ": " . $ex->getMessage();
+        }
+
+    }
 }
