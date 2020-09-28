@@ -34,7 +34,7 @@ class NavInvoiceService {
 			print $this->xmltest();
 		}else{
 			$data = [
-				'invoice_id' => $invoiceData['data']['number'],
+				'invoice_id' => $invoiceData['id'],
 				'customer' => $invoiceData['customer']['name'],
 				'xml' => $this->base64_xml,
 				'operation' => $invoiceData['operation'],
