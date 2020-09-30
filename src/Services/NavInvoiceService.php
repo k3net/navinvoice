@@ -55,11 +55,7 @@ class NavInvoiceService {
 	public function nisAnnul($id)
 	{
 		$this->annul($id);
-		
-		return [
-			'alert' => 'érvénytelenítő beküldve',
-			'reload' => true
-		];
+        return;
 	}
 	
 	public function nisUpdatexml(Request $request)
@@ -186,8 +182,9 @@ class NavInvoiceService {
 			$tosend->save();
 			return 'init error';
 		}
-		
+		$xml = base64_decode($tosend->xml);
 		//számla validálás
+        /*
 		try {
 			$xml = base64_decode($tosend->xml);
 			$invoices = new NavOnlineInvoice\InvoiceOperations();
@@ -208,14 +205,26 @@ class NavInvoiceService {
 			$this->sendalert($tosend);
 			return 'sending aborted, exception';
 		}
-		
+		*/
 		//számla beküldés
 		$connection = NavConnection::create([
 			'nav_tosend_id' => $tosend->id
 		]);
+        
 		
 		try {
-			$tosend->transaction_id = $reporter->manageInvoice(simplexml_load_string($xml), $tosend->operation);
+            if($tosend->operation == 'ANNUL'){
+                $tosend->transaction_id = $reporter->manageAnnulment(simplexml_load_string($xml), $tosend->operation);
+                /*
+                $re=$reporter->getLastRequestData();
+                var_dump($re);
+                dd('OK');
+                */
+            }
+            else{
+                $tosend->transaction_id = $reporter->manageInvoice(simplexml_load_string($xml), $tosend->operation);
+            }
+			
 			$tosend->msg = 'NAV-nak beküldve feldolgozásra: '.$tosend->operation;
 			$tosend->status = 'sent';
 			$tosend->save();
@@ -319,12 +328,13 @@ class NavInvoiceService {
 	public function annul($id)
 	{
 		$tosend = NavTosend::find($id);
-		
-		$annul_xml = view('nav.annul_xml', compact('tosend'))->render();
+		//$annul_xml = view('nav.annul_xml', compact('tosend'))->render();
+        $annul_xml = simplexml_load_string(View::make('navinvoice::annul_xml', compact('tosend'))->render());
 
+		
 		$annul = $tosend->replicate();
 		$annul->operation = 'ANNUL';
-		$annul->xml = base64_encode($annul_xml);
+		$annul->xml = base64_encode($annul_xml->asXML());
 		$annul->transaction_id = ''; 
 		$annul->msg = '';
 		$annul->status = 'tosend';
